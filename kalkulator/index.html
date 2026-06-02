@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Kalkulator HPP & BEP — FnB</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <div class="logo">
+      <span class="logo-mark">F</span>
+      <div>
+        <div class="logo-title">BISMILLAH</div>
+        <div class="logo-sub">Kalkulator HPP & BEP</div>
+      </div>
+    </div>
+    <nav class="main-nav">
+      <button class="nav-btn active" data-tab="hpp">HPP & Food cost</button>
+      <button class="nav-btn" data-tab="bep">BEP & Balik modal</button>
+      <button class="nav-btn" data-tab="proj">Proyeksi profit</button>
+      <button class="nav-btn" data-tab="gaji">Gaji karyawan</button>
+    </nav>
+    <button class="hamburger" id="hamburger" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<main class="main-content">
+
+  <!-- ============================
+       TAB: HPP
+  ============================= -->
+  <section id="tab-hpp" class="tab-panel active">
+    <div class="panel-header">
+      <h1>HPP & Food cost</h1>
+      <p>Hitung harga pokok produksi per porsi dan analisis kesehatan food cost kamu.</p>
+    </div>
+
+    <div class="grid-2col">
+      <div class="col-left">
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-icon">01</span>
+            <h2>Nama menu</h2>
+          </div>
+          <select id="menu-select" class="big-input" onchange="selectMenuFromList()">
+            <option value="">— Pilih dari menu COFFE (makanan menyusul) —</option>
+          </select>
+          <input type="text" id="menu-name" class="big-input" placeholder="Atau ketik nama menu sendiri" style="margin-top:10px"/>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-icon">02</span>
+            <h2>Bahan baku</h2>
+          </div>
+          <div class="table-hint">Harga beli dalam Rp/kg atau Rp/L atau Rp/pcs. Jumlah dalam gram/ml/pcs per porsi.</div>
+          <div class="table-wrap">
+            <table class="data-table" id="tb-bahan">
+              <thead>
+                <tr>
+                  <th>Bahan</th>
+                  <th>Jumlah</th>
+                  <th>Harga beli</th>
+                  <th>Satuan</th>
+                  <th>Sub (Rp)</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="bahan-body"></tbody>
+            </table>
+          </div>
+          <button class="add-row-btn" onclick="addBahan()">+ Tambah bahan</button>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-icon">03</span>
+            <h2>Biaya operasional per porsi</h2>
+          </div>
+          <div class="table-hint">Gas, packaging, tissue, sendok, dll — per satu porsi.</div>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr><th>Keterangan</th><th>Biaya (Rp)</th><th></th></tr>
+              </thead>
+              <tbody id="ops-body"></tbody>
+            </table>
+          </div>
+          <button class="add-row-btn" onclick="addOps()">+ Tambah biaya</button>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-icon">04</span>
+            <h2>Harga jual & waste</h2>
+          </div>
+          <div class="row-2">
+            <div class="field-group">
+              <label>Harga jual (Rp)</label>
+              <input type="number" id="hj" value="0" min="0" oninput="calc()"/>
+            </div>
+            <div class="field-group">
+              <label>Waste / susut (%)</label>
+              <input type="number" id="waste" value="0" min="0" max="60" oninput="calc()"/>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="col-right">
+
+        <div class="result-card sticky-result">
+          <div class="result-title">Hasil perhitungan</div>
+
+          <div class="result-menu-name" id="result-menu-name">—</div>
+
+          <div class="metrics-stack">
+            <div class="metric-row">
+              <span class="metric-label">HPP bahan baku</span>
+              <span class="metric-val" id="o-bahan">Rp 0</span>
+            </div>
+            <div class="metric-row sub">
+              <span class="metric-label">+ Waste factor</span>
+              <span class="metric-val muted" id="o-waste-rp">Rp 0</span>
+            </div>
+            <div class="metric-row sub">
+              <span class="metric-label">+ Ops per porsi</span>
+              <span class="metric-val muted" id="o-ops">Rp 0</span>
+            </div>
+            <div class="metric-row total">
+              <span class="metric-label">HPP Total</span>
+              <span class="metric-val" id="o-hpp">Rp 0</span>
+            </div>
+            <div class="metric-row">
+              <span class="metric-label">Harga jual</span>
+              <span class="metric-val" id="o-hj-disp">Rp 0</span>
+            </div>
+            <div class="metric-row total">
+              <span class="metric-label">Gross margin / porsi</span>
+              <span class="metric-val" id="o-gm">Rp 0</span>
+            </div>
+          </div>
+
+          <div class="fc-display">
+            <div class="fc-header">
+              <span class="fc-label">Food cost %</span>
+              <span class="fc-pct" id="o-fc">0%</span>
+            </div>
+            <div class="fc-bar-bg">
+              <div class="fc-bar-fill" id="fc-bar"></div>
+              <div class="fc-bar-marker" id="fc-marker-35" style="left:35%"></div>
+            </div>
+            <div class="fc-bar-legend">
+              <span>0%</span><span style="margin-left:calc(35% - 10px)">35%</span><span style="margin-left:auto">100%</span>
+            </div>
+          </div>
+
+          <div class="fc-badge-wrap">
+            <span class="status-badge" id="fc-badge">—</span>
+          </div>
+
+          <div class="insight-box" id="fc-insight">Masukkan data bahan dan harga jual.</div>
+
+          <div class="ideal-price-row">
+            <span>Harga ideal (target FC 30%)</span>
+            <strong id="o-hj-ideal">—</strong>
+          </div>
+        </div>
+
+        <div class="ref-card">
+          <div class="ref-title">Referensi food cost per kategori</div>
+          <div class="ref-list">
+            <div class="ref-row"><span>Minuman (kopi/jus)</span><span class="ref-badge good">18–28%</span></div>
+            <div class="ref-row"><span>Snack / gorengan</span><span class="ref-badge good">22–30%</span></div>
+            <div class="ref-row"><span>Makanan berat</span><span class="ref-badge warn">28–35%</span></div>
+            <div class="ref-row"><span>Daging / seafood</span><span class="ref-badge warn">33–42%</span></div>
+            <div class="ref-row"><span>Pastry / bakery</span><span class="ref-badge good">25–32%</span></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================
+       TAB: BEP
+  ============================= -->
+  <section id="tab-bep" class="tab-panel">
+    <div class="panel-header">
+      <h1>BEP & Balik modal</h1>
+      <p>Berapa porsi harus terjual per hari agar semua biaya tertutup?</p>
+    </div>
+
+    <div class="grid-2col">
+      <div class="col-left">
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-icon">01</span>
+            <h2>Biaya tetap per bulan (fixed cost)</h2>
+          </div>
+          <div class="table-hint">Biaya yang tetap meski tidak ada penjualan: sewa, gaji, listrik, dll.</div>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead><tr><th>Keterangan</th><th>Biaya (Rp/bulan)</th><th></th></tr></thead>
+              <tbody id="fixed-body"></tbody>
+            </table>
+          </div>
+          <button class="add-row-btn" onclick="addFixed()">+ Tambah biaya tetap</button>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-icon">02</span>
+            <h2>Asumsi penjualan</h2>
+          </div>
+          <div class="row-2">
+            <div class="field-group">
+              <label>Harga jual per porsi (Rp)</label>
+              <input type="number" id="bep-hj" value="0" min="1" oninput="calcBep()"/>
+            </div>
+            <div class="field-group">
+              <label>HPP total per porsi (Rp)</label>
+              <input type="number" id="bep-hpp" value="0" min="0" oninput="calcBep()"/>
+            </div>
+          </div>
+          <div class="row-2" style="margin-top:14px">
+            <div class="field-group">
+              <label>Hari operasional / bulan</label>
+              <input type="number" id="bep-hari" value="0" min="1" max="31" oninput="calcBep()"/>
+            </div>
+            <div class="field-group">
+              <label>Target porsi / hari</label>
+              <input type="number" id="bep-target" value="0" min="1" oninput="calcBep()"/>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-icon">03</span>
+            <h2>Grafik break-even</h2>
+          </div>
+          <div class="chart-legend">
+            <span><span class="dot" style="background:#e86c3a"></span>Fixed cost</span>
+            <span><span class="dot" style="background:#4a9eff"></span>Pendapatan</span>
+            <span><span class="dot dot-dash" style="background:#aaa"></span>Total cost</span>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="bep-chart" role="img" aria-label="Grafik break-even point perpotongan garis pendapatan dan biaya">Grafik BEP.</canvas>
+          </div>
+        </div>
+
+      </div>
+      <div class="col-right">
+
+        <div class="result-card">
+          <div class="result-title">Ringkasan BEP</div>
+          <div class="bep-metrics">
+            <div class="bep-metric-big">
+              <div class="bep-metric-num" id="b-bep-hari">—</div>
+              <div class="bep-metric-label">porsi / hari untuk BEP</div>
+            </div>
+            <div class="bep-metric-big">
+              <div class="bep-metric-num" id="b-bep-bulan">—</div>
+              <div class="bep-metric-label">porsi / bulan untuk BEP</div>
+            </div>
+          </div>
+          <div class="metrics-stack">
+            <div class="metric-row">
+              <span class="metric-label">Total fixed cost / bulan</span>
+              <span class="metric-val" id="b-fc-total">Rp 0</span>
+            </div>
+            <div class="metric-row">
+              <span class="metric-label">Contribution margin / porsi</span>
+              <span class="metric-val" id="b-cm">Rp 0</span>
+            </div>
+            <div class="metric-row">
+              <span class="metric-label">CM ratio</span>
+              <span class="metric-val" id="b-cm-ratio">0%</span>
+            </div>
+          </div>
+          <div class="insight-box" id="bep-insight">Masukkan biaya tetap untuk melihat BEP.</div>
+        </div>
+
+        <div class="milestones-card">
+          <div class="result-title">Milestone harian</div>
+          <div id="ms-list"></div>
+        </div>
+
+        <div class="result-card">
+          <div class="result-title">Simulasi bulan ini</div>
+          <div class="metrics-stack">
+            <div class="metric-row">
+              <span class="metric-label">Omset (target porsi)</span>
+              <span class="metric-val" id="b-omset">Rp 0</span>
+            </div>
+            <div class="metric-row">
+              <span class="metric-label">Total biaya</span>
+              <span class="metric-val" id="b-total-cost">Rp 0</span>
+            </div>
+            <div class="metric-row total">
+              <span class="metric-label">Net profit / bulan</span>
+              <span class="metric-val" id="b-net">Rp 0</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================
+       TAB: PROYEKSI
+  ============================= -->
+  <section id="tab-proj" class="tab-panel">
+    <div class="panel-header">
+      <h1>Proyeksi profit</h1>
+      <p>Lihat gambaran omset, gross profit, dan net profit 12 bulan ke depan.</p>
+    </div>
+
+    <div class="grid-2col">
+      <div class="col-left">
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-icon">01</span>
+            <h2>Parameter proyeksi</h2>
+          </div>
+          <div class="row-2">
+            <div class="field-group">
+              <label>Porsi terjual / hari</label>
+              <input type="number" id="pj-porsi" value="0" min="1" oninput="calcProj()"/>
+            </div>
+            <div class="field-group">
+              <label>Hari buka / bulan</label>
+              <input type="number" id="pj-hari" value="0" min="1" max="31" oninput="calcProj()"/>
+            </div>
+          </div>
+          <div class="row-2" style="margin-top:14px">
+            <div class="field-group">
+              <label>Harga jual / porsi (Rp)</label>
+              <input type="number" id="pj-hj" value="0" min="1" oninput="calcProj()"/>
+            </div>
+            <div class="field-group">
+              <label>HPP total / porsi (Rp)</label>
+              <input type="number" id="pj-hpp" value="0" min="0" oninput="calcProj()"/>
+            </div>
+          </div>
+          <div class="row-2" style="margin-top:14px">
+            <div class="field-group">
+              <label>Fixed cost / bulan (Rp)</label>
+              <input type="number" id="pj-fixed" value="0" min="0" oninput="calcProj()"/>
+            </div>
+            <div class="field-group">
+              <label>Pertumbuhan / bulan (%)</label>
+              <input type="number" id="pj-growth" value="3" min="0" max="50" oninput="calcProj()"/>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-icon">02</span>
+            <h2>Grafik 12 bulan</h2>
+          </div>
+          <div class="chart-legend">
+            <span><span class="dot" style="background:#4a9eff"></span>Omset</span>
+            <span><span class="dot" style="background:#3db87a"></span>Gross profit</span>
+            <span><span class="dot" style="background:#1d9e75"></span>Net profit</span>
+            <span><span class="dot dot-dash" style="background:#e86c3a"></span>Total cost</span>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="proj-chart" role="img" aria-label="Grafik proyeksi profit 12 bulan">Grafik proyeksi.</canvas>
+          </div>
+        </div>
+
+      </div>
+      <div class="col-right">
+
+        <div class="result-card">
+          <div class="result-title">Bulan pertama</div>
+          <div class="metrics-stack">
+            <div class="metric-row"><span class="metric-label">Omset</span><span class="metric-val" id="pj-omset">Rp 0</span></div>
+            <div class="metric-row sub"><span class="metric-label">Total HPP</span><span class="metric-val muted" id="pj-total-hpp">Rp 0</span></div>
+            <div class="metric-row"><span class="metric-label">Gross profit</span><span class="metric-val" id="pj-gp">Rp 0</span></div>
+            <div class="metric-row sub"><span class="metric-label">Fixed cost</span><span class="metric-val muted" id="pj-fc-disp">Rp 0</span></div>
+            <div class="metric-row total"><span class="metric-label">Net profit</span><span class="metric-val" id="pj-np">Rp 0</span></div>
+          </div>
+          <div class="margin-pills">
+            <div class="margin-pill">
+              <span class="mp-label">Gross margin</span>
+              <span class="mp-val" id="pj-gm-pct">0%</span>
+            </div>
+            <div class="margin-pill">
+              <span class="mp-label">Net margin</span>
+              <span class="mp-val" id="pj-nm-pct">0%</span>
+            </div>
+            <div class="margin-pill">
+              <span class="mp-label">Food cost</span>
+              <span class="mp-val" id="pj-fc-pct">0%</span>
+            </div>
+          </div>
+          <div class="insight-box" id="proj-insight">Masukkan parameter proyeksi.</div>
+        </div>
+
+        <div class="result-card">
+          <div class="result-title">Akumulasi 12 bulan</div>
+          <div class="metrics-stack">
+            <div class="metric-row"><span class="metric-label">Total omset</span><span class="metric-val" id="pj-annual">Rp 0</span></div>
+            <div class="metric-row total"><span class="metric-label">Total net profit</span><span class="metric-val" id="pj-annual-np">Rp 0</span></div>
+          </div>
+          <div class="payback-row" id="payback-row"></div>
+        </div>
+
+        <div class="ref-card">
+          <div class="ref-title">Benchmark net margin FnB</div>
+          <div class="ref-list">
+            <div class="ref-row"><span>Warung / gerobak</span><span class="ref-badge good">15–25%</span></div>
+            <div class="ref-row"><span>Resto kasual</span><span class="ref-badge warn">10–18%</span></div>
+            <div class="ref-row"><span>Kafe / coffee shop</span><span class="ref-badge good">12–22%</span></div>
+            <div class="ref-row"><span>Fine dining</span><span class="ref-badge warn">8–15%</span></div>
+            <div class="ref-row"><span>Cloud kitchen</span><span class="ref-badge good">15–30%</span></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================
+       TAB: GAJI KARYAWAN
+  ============================= -->
+  <section id="tab-gaji" class="tab-panel">
+    <div class="panel-header">
+      <h1>Patokan Gaji Karyawan</h1>
+      <p>Tentukan budget gaji berdasarkan performa bisnis dan standar industri F&B.</p>
+    </div>
+
+    <div class="grid-2col">
+      <div class="col-left">
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-icon">01</span>
+            <h2>Data bisnis</h2>
+          </div>
+          <div class="row-2">
+            <div class="field-group">
+              <label>Gross profit / bulan (Rp)</label>
+              <input type="number" id="gaji-gp" value="0" min="0" oninput="calcGaji()"/>
+            </div>
+            <div class="field-group">
+              <label>Net profit / bulan (Rp)</label>
+              <input type="number" id="gaji-np" value="0" min="0" oninput="calcGaji()"/>
+            </div>
+          </div>
+          <div class="field-group" style="margin-top:14px">
+            <label>Jumlah karyawan</label>
+            <input type="number" id="gaji-jml-karyawan" value="1" min="1" oninput="calcGaji()"/>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-icon">02</span>
+            <h2>Target alokasi gaji</h2>
+          </div>
+          <div class="table-hint">Pilih persentase gross profit yang ideal untuk budget gaji</div>
+          <div class="row-3">
+            <button class="alloc-btn" onclick="setGajiAllocation(20)">20%</button>
+            <button class="alloc-btn" onclick="setGajiAllocation(25)">25%</button>
+            <button class="alloc-btn" onclick="setGajiAllocation(30)">30%</button>
+            <button class="alloc-btn active" onclick="setGajiAllocation(25)">Kustom</button>
+          </div>
+          <div class="field-group" style="margin-top:14px">
+            <label>Alokasi dari gross profit (%)</label>
+            <input type="number" id="gaji-allocation" value="25" min="0" max="100" oninput="calcGaji()"/>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-icon">03</span>
+            <h2>Struktur gaji tim</h2>
+          </div>
+          <div class="table-hint">Atur gaji per posisi (opsional)</div>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead><tr><th>Posisi</th><th>Jumlah</th><th>Gaji (Rp)</th><th></th></tr></thead>
+              <tbody id="gaji-staff-body"></tbody>
+            </table>
+          </div>
+          <button class="add-row-btn" onclick="addStaff()">+ Tambah posisi</button>
+        </div>
+
+      </div>
+
+      <div class="col-right">
+
+        <div class="result-card sticky-result">
+          <div class="result-title">Rekomendasi gaji</div>
+
+          <div class="metrics-stack">
+            <div class="metric-row">
+              <span class="metric-label">Budget gaji / bulan</span>
+              <span class="metric-val" id="gaji-budget">Rp 0</span>
+            </div>
+            <div class="metric-row sub">
+              <span class="metric-label">% dari gross profit</span>
+              <span class="metric-val muted" id="gaji-budget-pct">0%</span>
+            </div>
+            <div class="metric-row total">
+              <span class="metric-label">Gaji per karyawan</span>
+              <span class="metric-val" id="gaji-per-karyawan">Rp 0</span>
+            </div>
+          </div>
+
+          <div class="insight-box" id="gaji-insight">Masukkan data gross profit dan jumlah karyawan.</div>
+
+          <div style="margin-top:20px; padding-top:20px; border-top:1px solid rgba(0,0,0,0.1)">
+            <div class="metric-row">
+              <span class="metric-label">Sisa untuk keuntungan pemilik</span>
+              <span class="metric-val" id="gaji-sisa-profit">Rp 0</span>
+            </div>
+            <div class="metric-row sub">
+              <span class="metric-label">% dari gross profit</span>
+              <span class="metric-val muted" id="gaji-sisa-pct">0%</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="ref-card">
+          <div class="ref-title">Benchmark gaji F&B (Rp/bulan)</div>
+          <div class="ref-list">
+            <div class="ref-row"><span>Staff kasir / front</span><span class="ref-badge good">2–3,5jt</span></div>
+            <div class="ref-row"><span>Barista / operator</span><span class="ref-badge good">2,5–4jt</span></div>
+            <div class="ref-row"><span>Chef / head kitchen</span><span class="ref-badge warn">3–5jt</span></div>
+            <div class="ref-row"><span>Manager toko</span><span class="ref-badge warn">3,5–5,5jt</span></div>
+            <div class="ref-row"><span>Delivery / helper</span><span class="ref-badge good">1,5–2,5jt</span></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <span>FnB Calc — Kalkulator HPP & BEP</span>
+    <span>Semua perhitungan bersifat estimasi</span>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
